@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#09090b" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Radar Milhar" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="stylesheet" href="style.css" />
+  <title>Radar de Milhares</title>
+</head>
+<body>
+  <div id="toast" class="toast">Pronto!</div>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-group">
+        <div class="brand-icon">RM</div>
+        <div>
+          <h1 class="brand-title">Radar de Milhares</h1>
+          <div class="brand-sub">Posicional + Bichos</div>
+        </div>
+      </div>
+      <div class="kpi-pills">
+        <div class="kpi-pill"><span>Base</span><strong id="kpi-total">0</strong></div>
+        <div class="kpi-pill"><span>Zerados</span><strong id="kpi-zeros" style="color:#fda4af;">0</strong></div>
+      </div>
+    </header>
+
+    <nav class="segmented-nav">
+      <button class="seg-btn active" data-view="radar">Palpites</button>
+      <button class="seg-btn" data-view="matriz">Matriz 4x10</button>
+      <button class="seg-btn" data-view="blocos">Histórico</button>
+    </nav>
+
+    <section id="view-radar" class="view-section active">
+      <div class="disclaimer">
+        Os palpites são só estatística de frequência do seu histórico. Cada sorteio é independente:
+        um dígito "zerado" não tem mais chance de sair. Use como registro, não como previsão.
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-label">Próximas 5 Projetadas</h2>
+          <span class="badge-zero-count" id="zeros-badge">0 dígitos zerados</span>
+        </div>
+        <div class="proj-carousel" id="proj-carousel"></div>
+        <div class="inspector" id="inspector-box"></div>
+        <div class="actions-grid">
+          <button class="btn btn-ghost" id="btn-regen">Girar Palpites</button>
+          <button class="btn btn-emerald" id="btn-copy">Copiar c/ Bichos</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-label">Dígitos Zerados por Casa (0x)</h2>
+        </div>
+        <div class="zeros-grid" id="zeros-grid"></div>
+      </div>
+    </section>
+
+    <section id="view-matriz" class="view-section">
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-label">Mapa de Frequência (0 a 9)</h2>
+          <span style="font-size:11px; color:var(--text-secondary);">
+            <strong style="color:#fda4af;">0x</strong> zerado &bull; <strong style="color:#fcd34d;">1x</strong> raro
+          </span>
+        </div>
+        <table class="heatmap-table">
+          <thead>
+            <tr><th>#</th><th>Milhar</th><th>Centena</th><th>Dezena</th><th>Unidade</th></tr>
+          </thead>
+          <tbody id="heatmap-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="view-blocos" class="view-section">
+      <div class="install-box" id="install-box">
+        <strong>Instalar como app:</strong>
+        <div id="install-text">
+          &bull; <strong>Android (Chrome):</strong> Menu (&vellip;) &rarr; <em>Instalar app</em>.<br/>
+          &bull; <strong>iPhone (Safari):</strong> Compartilhar &rarr; <em>Adicionar à Tela de Início</em>.
+        </div>
+        <button class="btn btn-emerald btn-sm" id="btn-install" style="display:none; margin-top:8px;">Instalar agora</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-label">Blocos Lançados</h2>
+          <button class="btn btn-ghost btn-sm" id="btn-export-text">Copiar texto</button>
+        </div>
+        <div id="history-container"></div>
+        <div class="actions-grid" style="margin-top:12px;">
+          <button class="btn btn-ghost" id="btn-reset">Restaurar 4 Blocos</button>
+          <button class="btn btn-danger" id="btn-clear">Limpar Tudo</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-label">Backup</h2>
+        </div>
+        <div class="actions-grid" style="grid-template-columns:1fr 1fr;">
+          <button class="btn btn-ghost" id="btn-backup">Baixar backup</button>
+          <button class="btn btn-ghost" id="btn-restore">Restaurar backup</button>
+        </div>
+        <input type="file" id="file-restore" accept="application/json,.json" hidden />
+        <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">
+          Os dados ficam só neste aparelho. Baixe o backup de vez em quando.
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="quick-dock">
+    <div class="dock-inner">
+      <input type="text" id="block-input" class="dock-input" inputmode="numeric"
+             placeholder="Novo bloco: 2178, 4300, 5463..." autocomplete="off" />
+      <button class="dock-submit" id="btn-add">+ Lançar</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
