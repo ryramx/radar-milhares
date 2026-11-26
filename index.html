@@ -15,12 +15,12 @@
   <title>Radar de Milhares</title>
 </head>
 <body>
-  <div id="toast" class="toast">Pronto!</div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <div class="app-shell">
     <header class="topbar">
       <div class="brand-group">
-        <div class="brand-icon">RM</div>
+        <div class="brand-icon" aria-hidden="true">RM</div>
         <div>
           <h1 class="brand-title">Radar de Milhares</h1>
           <div class="brand-sub">Posicional + Bichos</div>
@@ -28,38 +28,49 @@
       </div>
       <div class="kpi-pills">
         <div class="kpi-pill"><span>Base</span><strong id="kpi-total">0</strong></div>
-        <div class="kpi-pill"><span>Zerados</span><strong id="kpi-zeros" style="color:#fda4af;">0</strong></div>
+        <div class="kpi-pill"><span>Zerados</span><strong id="kpi-zeros" class="kpi-zero">0</strong></div>
       </div>
     </header>
 
-    <nav class="segmented-nav">
-      <button class="seg-btn active" data-view="radar">Palpites</button>
-      <button class="seg-btn" data-view="matriz">Matriz 4x10</button>
-      <button class="seg-btn" data-view="blocos">Histórico</button>
+    <nav class="segmented-nav" aria-label="Seções">
+      <button type="button" class="seg-btn active" data-view="radar" aria-pressed="true">Painel</button>
+      <button type="button" class="seg-btn" data-view="matriz" aria-pressed="false">Matriz</button>
+      <button type="button" class="seg-btn" data-view="bichos" aria-pressed="false">Bichos</button>
+      <button type="button" class="seg-btn" data-view="blocos" aria-pressed="false">Histórico</button>
     </nav>
+
+    <div class="period-bar">
+      <span class="period-label" id="period-label">Período</span>
+      <div class="chip-group" role="group" aria-labelledby="period-label">
+        <button type="button" class="chip active" data-period="all" aria-pressed="true">Tudo</button>
+        <button type="button" class="chip" data-period="7" aria-pressed="false">7 dias</button>
+        <button type="button" class="chip" data-period="30" aria-pressed="false">30 dias</button>
+      </div>
+    </div>
+    <div class="period-note" id="period-note" hidden></div>
 
     <section id="view-radar" class="view-section active">
       <div class="disclaimer">
-        Os palpites são só estatística de frequência do seu histórico. Cada sorteio é independente:
+        Isto é só estatística de frequência do seu histórico. Cada sorteio é independente:
         um dígito "zerado" não tem mais chance de sair. Use como registro, não como previsão.
       </div>
 
       <div class="panel">
         <div class="panel-head">
-          <h2 class="panel-label">Próximas 5 Projetadas</h2>
+          <h2 class="panel-label">Combinações menos frequentes</h2>
           <span class="badge-zero-count" id="zeros-badge">0 dígitos zerados</span>
         </div>
         <div class="proj-carousel" id="proj-carousel"></div>
         <div class="inspector" id="inspector-box"></div>
-        <div class="actions-grid">
-          <button class="btn btn-ghost" id="btn-regen">Girar Palpites</button>
-          <button class="btn btn-emerald" id="btn-copy">Copiar c/ Bichos</button>
+        <div class="actions-grid" id="proj-actions">
+          <button type="button" class="btn btn-ghost" id="btn-regen">Outras combinações</button>
+          <button type="button" class="btn btn-emerald" id="btn-copy">Copiar c/ bichos</button>
         </div>
       </div>
 
       <div class="panel">
         <div class="panel-head">
-          <h2 class="panel-label">Dígitos Zerados por Casa (0x)</h2>
+          <h2 class="panel-label">Dígitos zerados por casa (0x)</h2>
         </div>
         <div class="zeros-grid" id="zeros-grid"></div>
       </div>
@@ -68,39 +79,59 @@
     <section id="view-matriz" class="view-section">
       <div class="panel">
         <div class="panel-head">
-          <h2 class="panel-label">Mapa de Frequência (0 a 9)</h2>
-          <span style="font-size:11px; color:var(--text-secondary);">
-            <strong style="color:#fda4af;">0x</strong> zerado &bull; <strong style="color:#fcd34d;">1x</strong> raro
-          </span>
+          <h2 class="panel-label">Mapa por casa (0 a 9)</h2>
+          <div class="chip-group" role="group" aria-label="Modo da matriz">
+            <button type="button" class="chip active" data-matrix="freq" aria-pressed="true">Frequência</button>
+            <button type="button" class="chip" data-matrix="atraso" aria-pressed="false">Atraso</button>
+          </div>
         </div>
+        <div class="legend" id="matrix-legend"></div>
         <table class="heatmap-table">
           <thead>
-            <tr><th>#</th><th>Milhar</th><th>Centena</th><th>Dezena</th><th>Unidade</th></tr>
+            <tr><th scope="col">#</th><th scope="col">Milhar</th><th scope="col">Centena</th><th scope="col">Dezena</th><th scope="col">Unidade</th></tr>
           </thead>
           <tbody id="heatmap-body"></tbody>
         </table>
       </div>
     </section>
 
+    <section id="view-bichos" class="view-section">
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-label">Frequência por bicho</h2>
+          <div class="chip-group" role="group" aria-label="Ordenar bichos">
+            <button type="button" class="chip active" data-bsort="grupo" aria-pressed="true">Grupo</button>
+            <button type="button" class="chip" data-bsort="freq" aria-pressed="false">Mais saíram</button>
+          </div>
+        </div>
+        <div class="legend">Contagem pela dezena (2 últimos dígitos). Atraso = milhares desde a última vez.</div>
+        <div id="bichos-list"></div>
+      </div>
+    </section>
+
     <section id="view-blocos" class="view-section">
       <div class="install-box" id="install-box">
         <strong>Instalar como app:</strong>
-        <div id="install-text">
+        <div>
           &bull; <strong>Android (Chrome):</strong> Menu (&vellip;) &rarr; <em>Instalar app</em>.<br/>
           &bull; <strong>iPhone (Safari):</strong> Compartilhar &rarr; <em>Adicionar à Tela de Início</em>.
         </div>
-        <button class="btn btn-emerald btn-sm" id="btn-install" style="display:none; margin-top:8px;">Instalar agora</button>
+        <button type="button" class="btn btn-emerald btn-sm install-btn" id="btn-install" hidden>Instalar agora</button>
+      </div>
+
+      <div class="alert-box" id="backup-alert" hidden>
+        <span id="backup-alert-text"></span>
+        <button type="button" class="btn btn-emerald btn-sm" id="btn-backup-alert">Baixar backup</button>
       </div>
 
       <div class="panel">
         <div class="panel-head">
-          <h2 class="panel-label">Blocos Lançados</h2>
-          <button class="btn btn-ghost btn-sm" id="btn-export-text">Copiar texto</button>
+          <h2 class="panel-label">Blocos lançados</h2>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-export-text">Copiar texto</button>
         </div>
         <div id="history-container"></div>
-        <div class="actions-grid" style="margin-top:12px;">
-          <button class="btn btn-ghost" id="btn-reset">Restaurar 4 Blocos</button>
-          <button class="btn btn-danger" id="btn-clear">Limpar Tudo</button>
+        <div class="actions-grid actions-single">
+          <button type="button" class="btn btn-danger" id="btn-clear">Limpar tudo</button>
         </div>
       </div>
 
@@ -108,23 +139,37 @@
         <div class="panel-head">
           <h2 class="panel-label">Backup</h2>
         </div>
-        <div class="actions-grid" style="grid-template-columns:1fr 1fr;">
-          <button class="btn btn-ghost" id="btn-backup">Baixar backup</button>
-          <button class="btn btn-ghost" id="btn-restore">Restaurar backup</button>
+        <div class="actions-grid actions-even">
+          <button type="button" class="btn btn-ghost" id="btn-backup">Baixar backup</button>
+          <button type="button" class="btn btn-ghost" id="btn-restore">Restaurar backup</button>
         </div>
         <input type="file" id="file-restore" accept="application/json,.json" hidden />
-        <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">
-          Os dados ficam só neste aparelho. Baixe o backup de vez em quando.
+        <div class="restore-choice" id="restore-choice" hidden>
+          <div id="restore-choice-text"></div>
+          <div class="actions-grid actions-three">
+            <button type="button" class="btn btn-emerald btn-sm" id="btn-restore-merge">Juntar</button>
+            <button type="button" class="btn btn-danger btn-sm" id="btn-restore-replace">Substituir</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-restore-cancel">Cancelar</button>
+          </div>
         </div>
+        <div class="muted-note" id="backup-info">Os dados ficam só neste aparelho. Baixe o backup de vez em quando.</div>
       </div>
     </section>
   </div>
 
-  <div class="quick-dock">
+  <div class="quick-dock" id="quick-dock">
     <div class="dock-inner">
-      <input type="text" id="block-input" class="dock-input" inputmode="numeric"
-             placeholder="Novo bloco: 2178, 4300, 5463..." autocomplete="off" />
-      <button class="dock-submit" id="btn-add">+ Lançar</button>
+      <div class="dock-meta">
+        <input type="date" id="block-date" class="dock-field" aria-label="Data do sorteio" />
+        <input type="text" id="block-label" class="dock-field" maxlength="20"
+               placeholder="Horário (opcional)" aria-label="Horário ou extração (opcional)" autocomplete="off" />
+      </div>
+      <div class="dock-row">
+        <input type="text" id="block-input" class="dock-input" inputmode="numeric"
+               placeholder="Milhares: 2178 4300 ou 21784300" aria-label="Milhares do bloco" autocomplete="off" />
+        <button type="button" class="dock-cancel" id="btn-cancel-edit" aria-label="Cancelar edição" hidden>&times;</button>
+        <button type="button" class="dock-submit" id="btn-add">+ Lançar</button>
+      </div>
     </div>
   </div>
 

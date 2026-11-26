@@ -1,5 +1,8 @@
-// Troque o número da versão a cada atualização para forçar o refresh do cache.
-const CACHE = "radar-milhares-v1";
+// Estratégia: rede primeiro (sempre pega a versão mais nova quando há internet),
+// cache como reserva para funcionar offline. Não é preciso trocar a versão a cada
+// deploy; troque CACHE só se mudar a lista de ASSETS.
+const CACHE = "radar-milhares-v2";
+const NETWORK_TIMEOUT_MS = 4000;
 const ASSETS = [
   "./",
   "./index.html",
@@ -25,21 +28,32 @@ self.addEventListener("activate", (e) => {
   );
 });
 
-// Cache first, com atualização em segundo plano.
 self.addEventListener("fetch", (e) => {
-  if (e.request.method !== "GET") return;
-  e.respondWith(
-    caches.match(e.request).then((cached) => {
-      const network = fetch(e.request)
-        .then((res) => {
-          if (res && res.ok && new URL(e.request.url).origin === location.origin) {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(e.request, copy));
-          }
-          return res;
-        })
-        .catch(() => cached);
-      return cached || network;
-    })
-  );
+  const req = e.request;
+  if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
+
+  e.respondWith((async () => {
+    const cached = await caches.match(req, { ignoreSearch: true });
+    const controller = new AbortController();
+    // Com cópia em cache, não deixa uma rede lenta travar o app.
+    const timer = cached ? setTimeout(() => controller.abort(), NETWORK_TIMEOUT_MS) : null;
+    try {
+      // "no-cache" revalida com o servidor em vez de usar o cache HTTP do navegador.
+      const res = await fetch(req.url, { cache: "no-cache", credentials: "same-origin", signal: controller.signal });
+      if (res.ok) {
+        const copy = res.clone();
+        e.waitUntil(caches.open(CACHE).then((c) => c.put(req, copy)));
+      }
+      return res;
+    } catch (err) {
+      if (cached) return cached;
+      if (req.mode === "navigate") {
+        const shell = await caches.match("./index.html");
+        if (shell) return shell;
+      }
+      return Response.error();
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  })());
 });
